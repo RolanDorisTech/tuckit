@@ -1,22 +1,29 @@
 // ==UserScript==
-// @name         TuckIT — Keep Chat Context Visible [DEV Meta+DeepSeek Only]
+// @name         Drag to Resize, Click to Tuck, Made for AI Chats (TuckIT by RDT)
 // @namespace    https://github.com/RolanDorisTech/tuckit
-// @version      0.0.1-dev-meta-deepseek-7n28-450ms
-// @description  DEV proof-of-concept - Meta.ai + DeepSeek only. ChatGPT/Claude/Gemini/OpenWebUI disabled for stable release. Includes no-flicker paste + animated UnTuckIT + mimic drag-bar click fix.
+// @version      0.1.0
+// @description  Does Meta AI input cover your chat? Does DeepSeek box get too big? TuckIT pins input to bottom so it NEVER covers messages. Drag teal bar to resize (smooth), triangle to tuck. For Meta AI & DeepSeek. By RDT - @RolanDorisTech
+// @author       RDT - Rolan Doris Tech
 // @supportURL   https://youtube.com/@RolanDorisTech
+// @homepageURL  https://github.com/RolanDorisTech/tuckit
+// @updateURL    https://raw.githubusercontent.com/RolanDorisTech/tuckit/main/tuckit.user.js
+// @downloadURL  https://raw.githubusercontent.com/RolanDorisTech/tuckit/main/tuckit.user.js
 // @match        *://*.deepseek.com/*
 // @match        *://deepseek.com/*
 // @match        *://*.meta.ai/*
-// @match        *://*.facebook.com/*
+// @match        *://*.facebook.com/ai/*
+// @match        *://*.facebook.com/*ai*
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_addStyle
 // @run-at       document-idle
+// @license      Apache-2.0
 // ==/UserScript==
 
 
 (() => {
 'use strict';
+// TuckIT - Sticky AI Chat Input Fix | By RDT | Built on YouTube @RolanDorisTech | Keeps chat context visible on Meta AI & DeepSeek
 if (window.top!== window.self) return;
 
 const host = location.hostname;
@@ -29,6 +36,8 @@ const isClaude = false;
 const isGemini = false;
 // Hard stop if not Meta or DeepSeek - dev release only
 if (!isMeta && !isDeepSeek) { console.log('[TuckIT DEV] disabled on', host, '- Meta+DeepSeek only build'); return; }
+// Limit facebook.com to /ai paths only to avoid running on whole FB feed
+if (/facebook\.com/i.test(host) && !location.href.toLowerCase().includes('/ai')) { console.log('[TuckIT] disabled on', location.href, '- not /ai path'); return; }
 
 const SELECTORS = isMeta
 ? 'div[data-lexical-editor="true"],div[contenteditable="true"][role="textbox"]'
@@ -215,7 +224,7 @@ function bootMetaAfterFirstResponse() {
     _metaResponseTimer = null;
     _metaTransitionFromHome = false;
     bootNow(false);
-    showToast('TuckIT loaded — refresh (Ctrl+R) if crooked');
+    showToast('TuckIT loaded — refresh (Cmd+R/Ctrl+R) if crooked');
   }, META_FALLBACK_TOTAL);
   let thinkingSeen = false;
   const hasThinking = () => {
@@ -1297,10 +1306,12 @@ function animateTuckHeight(wrap, el, btn, targetH, dur=190) {
 
 function toggleCurrent(wrap, btn) {
   if (!wrap ||!btn) return;
-  // DEV FIX: hard 450ms debounce to prevent breakage from rapid retoggle (triangle + Ctrl+Shift+L)
+  // P0 FIX: gate on animating first (primary lock), then dynamic debounce to fix 450ms < 600ms race
+  if (wrap._tuckitAnimating) return;
   const now = Date.now();
-  if (now - lastToggleAt < 450) return;
-  if (wrap._tuckitAnimating) return; // block any toggle while animating
+  const isFirstPending = !wrap._tuckitFirstExpandDone;
+  const requiredGap = isFirstPending ? 750 : 300;
+  if (now - lastToggleAt < requiredGap) return;
   lastToggleAt = now;
   wrap._tuckitLastToggle = Date.now();
   const input = wrap.querySelector('div[contenteditable="true"], textarea, div.ProseMirror'); if (!input) return;
@@ -1439,7 +1450,8 @@ window.addEventListener('keydown', e => {
   if (e.ctrlKey && e.shiftKey && e.code === 'KeyK') { e.preventDefault(); e.stopPropagation(); setDisabled(!tuckitDisabled); return; }
   if (e.ctrlKey && e.shiftKey && e.code === 'KeyL') {
     e.preventDefault(); e.stopPropagation(); if (tuckitDisabled) return;
-    if (Date.now() - lastToggleAt < 450) return; // same 450ms limit for hotkey
+    if (activeWrap && activeWrap._tuckitAnimating) return;
+    { const _isFirst = !(activeWrap && activeWrap._tuckitFirstExpandDone); const _gap = _isFirst ? 750 : 300; if (Date.now() - lastToggleAt < _gap) return; }
     let wrap = activeWrap; let btn = activeBtn; if (!wrap ||!btn) { const first = document.querySelector('.tuckit-toggle'); if (first) { wrap = first.closest('.tuckit-wrap-fixed') || first.parentElement; btn = first; } }
     if (!wrap ||!btn) return; toggleCurrent(wrap, btn);
   }
@@ -1465,7 +1477,7 @@ function inject(el) {
   btn.addEventListener('pointerenter', (e) => { showUI(btn); showButtonFirst(e); });
   btn.addEventListener('pointermove', (e) => { showUI(btn); moveButtonTips(e); });
   btn.addEventListener('pointerleave', () => { hideButtonTips(); scheduleHideUI(btn); });
-  btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); hideAllTips(); if (Date.now() - lastToggleAt < 600) return; toggleCurrent(wrap, btn); });
+  btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); hideAllTips(); if (wrap._tuckitAnimating) return; { const _isFirst = !wrap._tuckitFirstExpandDone; const _gap = _isFirst ? 750 : 300; if (Date.now() - lastToggleAt < _gap) return; } toggleCurrent(wrap, btn); });
 
   handle.addEventListener('pointerenter', () => {
     showUI(btn);
