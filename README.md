@@ -1,19 +1,17 @@
-# TuckIT - Sticky AI Chat Input Fix | Keep AI Chat Context Visible
+# Drag to Resize, Click to Tuck, Made for AI Chats (TuckIT by RDT)
 
-> **Meta AI input covers your conversation? DeepSeek chat box too big?** 
-> TuckIT keeps the AI chat input sticky at the bottom so it never covers your messages. Drag to resize, click to tuck. Free, open-source, by RDT.
+> **Meta AI input covers your chat? DeepSeek box too big?**
+> TuckIT pins the input to the bottom so it NEVER covers messages. Drag teal bar to resize (smooth), triangle to tuck. Made for AI chats.
 
-[[Install on GreasyFork](https://img.shields.io/badge/Install-GreasyFork-black?logo=tampermonkey)](https://greasyfork.org/en/scripts/YOUR_ID_HERE)
-[[Firefox](https://img.shields.io/badge/Firefox-Add--on-orange?logo=firefox)](https://addons.mozilla.org/en-US/firefox/addon/YOUR_ID_HERE)
-[[Chrome](https://img.shields.io/badge/Chrome-Extension-blue?logo=googlechrome)](https://chrome.google.com/webstore/detail/YOUR_ID_HERE)
-[[YouTube - Built by RDT](https://img.shields.io/badge/Built_on_YouTube-RDT-red?logo=youtube)](https://youtube.com/@RolanDorisTech)
+[[Install on GreasyFork](https://img.shields.io/badge/Install-GreasyFork-black?logo=tampermonkey)](https://greasyfork.org/en/scripts/597734-tuckit-drag-to-resize-click-to-tuck-made-for-ai-chats-tuckit-by-rdt)
+[[Built on YouTube - RDT](https://img.shields.io/badge/Built_on_YouTube-RDT-red?logo=youtube)](https://youtube.com/@RolanDorisTech)
 [[License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ### 🎬 Demo - Built Live on YouTube by RDT
 
-[[TuckIT Demo - Fix Meta AI & DeepSeek Chat Input](https://img.youtube.com/vi/YOUR_VIDEO_ID_HERE/0.jpg)](https://youtube.com/@RolanDorisTech)
+**Watch the build:** Does Meta AI hide your conversation? Does DeepSeek's input get huge and cover messages? I built TuckIT live to fix it.
 
-**Watch the build breakdown:** Does Meta AI hide your conversation? Does DeepSeek's input get huge and cover messages? This is TuckIT by RDT - I built a fix live.
+Video coming soon → [@RolanDorisTech on YouTube](https://youtube.com/@RolanDorisTech)
 
 ---
 
@@ -52,7 +50,7 @@ If you drag the edge of the text box using the teal drag bar to expand the chat 
 **If you see the glitch:** Hit `Cmd + R / Ctrl + R` to refresh. That's the universal fix.
 
 **2. Intentional: Doesn't Activate on First Message**
-TuckIT intentionally does NOT activate for the very first message in a new chat. It waits until the second turn of a conversation. 
+TuckIT intentionally does NOT activate for the very first message in a new chat. It waits until the second turn of a conversation.
 
 Why? On a brand new chat, Meta AI and DeepSeek show welcome screens, suggested prompts, and do heavy initial layout. If I pinned the input immediately, it would fight their welcome layout and cause flicker. So TuckIT waits - you send one message, get one response, then on the second turn it kicks in and stays sticky for the rest of the conversation. This is by design, not a bug.
 
@@ -119,11 +117,6 @@ If toolbar icon missing: Safari -> View -> Customize Toolbar -> Drag `</>` icon.
 
 Alternative: Tampermonkey for Safari ($1.99) works same as Chrome.
 
-### Stores
-
-- Firefox: TuckIT - Keep AI Chat Context Visible
-- Chrome: TuckIT - Sticky AI Chat Input Fix
-
 ## 🎮 How to Use
 
 **Best practice:**
@@ -149,9 +142,6 @@ Both use Ctrl+Shift on Mac too.
 - 🔜 ChatGPT, Claude, Gemini
 
 ## ❓ FAQ
-
-**Q: Screenshots - do I need them for GitHub?**
-A: Yes, most extension READMEs have 1-2 screenshots or a GIF - it triples install rate. But you can ship v0.1.0 without them and add later. If you add: show Before/After, close-up of teal drag bar, and triangle button. No need for complex screenshots.
 
 **Q: Why doesn't it work on first message of new chat?**
 A: Intentional. TuckIT waits until second turn to avoid fighting welcome screens and initial layout. Send one message, get one response, then it activates and stays for rest of chat.
@@ -195,4 +185,4 @@ Star the repo if it saves you time.
 Apache 2.0
 
 ---
-Keywords: sticky ai chat input fix, meta ai chat input covers conversation, deepseek chat box too big, keep chat context visible
+Keywords: sticky ai chat input fix, meta ai chat input covers conversation, deepseek chat box too big, keep chat context visible, drag to resize click to tuck
