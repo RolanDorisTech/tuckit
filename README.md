@@ -3,9 +3,9 @@
 > **Meta AI input covers your chat? DeepSeek box too big?**
 > TuckIT pins the input to the bottom so it NEVER covers messages. Drag teal bar to resize (smooth), triangle to tuck. Made for AI chats.
 
-[[Install on GreasyFork](https://img.shields.io/badge/Install-GreasyFork-black?logo=tampermonkey)](https://greasyfork.org/en/scripts/597734-tuckit-drag-to-resize-click-to-tuck-made-for-ai-chats-tuckit-by-rdt)
-[[Built on YouTube - RDT](https://img.shields.io/badge/Built_on_YouTube-RDT-red?logo=youtube)](https://youtube.com/@RolanDorisTech)
-[[License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Install on GreasyFork](https://img.shields.io/badge/Install-GreasyFork-black?logo=tampermonkey)](https://greasyfork.org/en/scripts/597734-tuckit-drag-to-resize-click-to-tuck-made-for-ai-chats-tuckit-by-rdt)
+[![Built on YouTube - RDT](https://img.shields.io/badge/Built_on_YouTube-RDT-red?logo=youtube)](https://youtube.com/@RolanDorisTech)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 ### v0.1.1-alpha.2 - Best build yet
 
@@ -47,7 +47,7 @@ If you drag the edge of the text box using the teal drag bar to expand the chat 
 
 **Pro tip:** Always drag to expand if you want zero lag. The button is fastest for collapsing, drag is best for expanding.
 
-**If you see the glitch:** Hit `Cmd + R / Ctrl + R` to refresh. That's the universal fix.
+**If you see the glitch:** Hit `Cmd + R / Ctrl + R` to refresh, and or drag the drag bar to increase or decrease the chatbox size. Those are the universal fixes.
 
 **2. Intentional: Doesn't Activate on First Message**
 TuckIT intentionally does NOT activate for the very first message in a new chat. It waits until the second turn of a conversation.
@@ -133,7 +133,7 @@ Both use Ctrl+Shift on Mac too.
 
 ## 🌐 Supported Sites
 
-**v0.1.0 - Stable - Verified:**
+**v0.1.1-alpha.2 - Best build yet **
 - ✅ `meta.ai/*`
 - ✅ `facebook.com/ai/*`
 - ✅ `deepseek.com/*`
@@ -169,7 +169,8 @@ A: `tuckit.user.js` = live auto-update. Versioned file = archive.
 
 ## 🗺️ Roadmap
 
-- v0.1.0 - Meta + DeepSeek stable
+- v0.1.0 - Meta + DeepSeek stable (archive)
+- v0.1.1-alpha.2 - Meta full-line fix + 40% smaller DeepSeek attach (current best)
 - v0.2.0 - Adapter pattern, ChatGPT/Claude/Gemini
 - v0.3.0 - Native MV3
 
