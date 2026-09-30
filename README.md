@@ -7,11 +7,11 @@
 [[Built on YouTube - RDT](https://img.shields.io/badge/Built_on_YouTube-RDT-red?logo=youtube)](https://youtube.com/@RolanDorisTech)
 [[License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-### 🎬 Demo - Built Live on YouTube by RDT
+### v0.1.1-alpha.2 - Best build yet
 
-**Watch the build:** Does Meta AI hide your conversation? Does DeepSeek's input get huge and cover messages? I built TuckIT live to fix it.
-
-Video coming soon → [@RolanDorisTech on YouTube](https://youtube.com/@RolanDorisTech)
+- Fixed Meta half-line clipped on Shift+Enter / pasted images
+  
+- Fixed DeepSeek tuck-with-attachment and made attached minimum ~40% smaller to restore tuck range
 
 ---
 
