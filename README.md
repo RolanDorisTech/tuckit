@@ -1,17 +1,19 @@
 # Drag to Resize, Click to Tuck, Made for AI Chats (TuckIT by RDT)
 
 > **Meta AI input covers your chat? DeepSeek box too big?**
-> TuckIT pins the input to the bottom so it NEVER covers messages. Drag teal bar to resize (smooth), triangle to tuck. Made for AI chats.
+> TuckIT pins the input to the bottom so it NEVER covers messages. Drag teal bar to resize (smooth), triangle to tuck, trash to clear all. Made for AI chats.
 
 [![Install on GreasyFork](https://img.shields.io/badge/Install-GreasyFork-black?logo=tampermonkey)](https://greasyfork.org/en/scripts/597734-tuckit-drag-to-resize-click-to-tuck-made-for-ai-chats-tuckit-by-rdt)
 [![Built on YouTube - RDT](https://img.shields.io/badge/Built_on_YouTube-RDT-red?logo=youtube)](https://youtube.com/@RolanDorisTech)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-### v0.1.1-alpha.2 - Best build yet
+### v0.1.1-alpha.4 - Best build yet
 
-- Fixed Meta half-line clipped on Shift+Enter / pasted images
-  
-- Fixed DeepSeek tuck-with-attachment and made attached minimum ~40% smaller to restore tuck range
+- Added Trash Clear All for DeepSeek - Esc to arm, Enter/click to confirm, clears text + attachments
+- Added Scroll Keeper - prevents page jumping to top during resize/tuck/send
+- Fixed Meta half-line clipped - larger buffer + verifyFit guard, Shift+Enter / pasted images now fully visible
+- Fixed DeepSeek first-attachment auto-expand, footer pinning, ghost scrollbar removal
+- Improved caret restore & overall stability
 
 ---
 
@@ -19,7 +21,7 @@
 
 If you use Meta AI or DeepSeek, you know this pain:
 
-- `meta ai input covers chat`
+- `【entity-meta¦canonical_name=Meta】 ai input covers chat`
 - `deepseek chat box too big`
 - `chat input covers messages`
 - `can't see chat history while typing`
@@ -35,12 +37,13 @@ TuckIT pins the input to the bottom and gives you full control:
 - **Sticky by default** - Input stays at bottom, never covers messages
 - **Drag to resize** - Teal handle at top of input, drag up/down to set your perfect height
 - **Click to Tuck** - Triangle button collapses to minimal, click again to restore
+- **Trash to Clear All** - Trash button clears text + attachments (DeepSeek) with double-confirm
 - **No flicker paste** - Paste large text/files without jumping
 - **Smart auto-tuck** - Auto-tucks after send
 
-## ⚠️ Quirks, Intended Behavior & Pro Tips - READ THIS
+## ⚠ Quirks, Intended Behavior & Pro Tips - READ THIS
 
-I built TuckIT to be minimal and fast, but Meta and DeepSeek use heavy React editors (Lexical/ProseMirror) that fight back. Most of these are intentional.
+I built TuckIT to be minimal and fast, but 【entity-Meta¦canonical_name=Meta】 and DeepSeek use heavy React editors (Lexical/ProseMirror) that fight back. Most of these are intentional.
 
 **1. Drag Bar = Smooth, Triangle Button = Can Glitch**
 If you drag the edge of the text box using the teal drag bar to expand the chat box, it's buttery smooth and less laggy. Using the UnTuckIT triangle button to expand sometimes results in visual bugs - the textarea stays small with a big empty gray area, or the scrollbar jumps to the far right.
@@ -62,17 +65,22 @@ If you want more room while typing, drag the teal bar up or hit `Ctrl+Shift+L` t
 **4. Keyboard Shortcuts Save You**
 - `Ctrl + Shift + L` = Toggle Tuck / UnTuck - your main toggle, same as clicking triangle
 - `Ctrl + Shift + K` = Turn TuckIT ON / OFF completely - kill switch if a site update breaks layout and you need to disable fast without uninstalling
+- `Esc` then `Enter` = Clear All (DeepSeek) - Esc arms trash, Enter/click confirms, Esc again cancels
 
 **5. When in doubt, refresh**
 If anything looks crooked: `If crooked, refresh (Cmd + R / Ctrl + R)`. Fixes 99% of quirks.
+
+**6. Clear All Note**
+Trash Clear All is DeepSeek-only in alpha.4. Meta trash is intentionally disabled to avoid fighting Meta's composer. On DeepSeek it clears both text and attached files.
 
 ## ✨ Features
 
 - 🟦 **Teal drag bar** - Top edge of input, ns-resize cursor, drag up/down
 - 🔺 **Triangle toggle** - [TuckIT / UnTuckIT] - fast collapse
+- 🗑️ **Trash Clear All** - Esc to arm, Enter to confirm - clears input + attachments (DeepSeek)
 - 📋 **Caret stays** - Your cursor stays where you left it
-- ⌨️ **Two hotkeys** - L for toggle, K for kill switch
-- 🎯 **No scroll hijack** - Feed scroll stays natural
+- ⌨ **Three hotkeys** - L for toggle, K for kill switch, Esc/Enter for clear
+- 🎯 **No scroll hijack** - Scroll keeper prevents jump-to-top
 - 💾 **Remembers height** - Last expanded height saved
 
 ## 📦 Install - Detailed Per Browser
@@ -122,18 +130,20 @@ Alternative: Tampermonkey for Safari ($1.99) works same as Chrome.
 **Best practice:**
 - **To collapse fast:** Click triangle or `Ctrl+Shift+L`
 - **To expand smooth:** DRAG teal bar up - less laggy, avoids visual bug
+- **To clear:** Click trash or press `Esc` then `Enter` (DeepSeek)
 - **Bar disappeared?** Hover near top edge of input
 
-## ⌨️ Keyboard Shortcuts
+## ⌨ Keyboard Shortcuts
 
 - **`Ctrl + Shift + L`** - **Tuck / UnTuck Toggle** - Daily driver for tucking and untucking.
 - **`Ctrl + Shift + K`** - **Kill Switch - ON/OFF** - Turn TuckIT on and off completely. Use when site update breaks layout.
+- **`Esc` -> `Enter`** - **Clear All (DeepSeek only)** - Esc arms trash button, Enter or second click confirms. Esc again / typing / click outside cancels.
 
 Both use Ctrl+Shift on Mac too.
 
 ## 🌐 Supported Sites
 
-**v0.1.1-alpha.2 - Best build yet **
+**v0.1.1-alpha.4 - Best build yet **
 - ✅ `meta.ai/*`
 - ✅ `facebook.com/ai/*`
 - ✅ `deepseek.com/*`
@@ -158,19 +168,25 @@ A: `If crooked, refresh (Cmd + R / Ctrl + R)`.
 **Q: Chrome Allow User Scripts where?**
 A: `chrome://extensions/` -> Tampermonkey -> Details -> Allow User Scripts ON.
 
+**Q: What does trash button do?**
+A: New in alpha.4 - DeepSeek only. Clears current prompt + attached files. Double-confirm to prevent accidents: Esc arms it (turns red), Enter confirms. Meta trash is disabled intentionally.
+
 **Q: Why two files?**
 A: `tuckit.user.js` = live auto-update. Versioned file = archive.
 
-## 🛠️ Tech Notes
+## 🛠 Tech Notes
 
-- Vanilla JS, @run-at document-idle
+- Vanilla JS, @run-at document-idle, MAIN_WORLD sandbox
+- Scroll keeper with snapshot/restore to prevent yank-to-top
 - Dynamic debounce 750ms first / 300ms normal + _tuckitAnimating gate
 - Footer detection fix: excludes wrapper, only 20-140px footers
+- Attachment detection + auto-expand on drop/paste/file input
 
-## 🗺️ Roadmap
+## 🗺 Roadmap
 
 - v0.1.0 - Meta + DeepSeek stable (archive)
-- v0.1.1-alpha.2 - Meta full-line fix + 40% smaller DeepSeek attach (current best)
+- v0.1.1-alpha.2 - Meta full-line fix + 40% smaller DeepSeek attach
+- v0.1.1-alpha.4 - Trash Clear All + Scroll Keeper + stability polish (current best)
 - v0.2.0 - Adapter pattern, ChatGPT/Claude/Gemini
 - v0.3.0 - Native MV3
 
