@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Drag to Resize, Click to Tuck, Made for AI Chats (TuckIT by RDT)
 // @namespace    https://github.com/RolanDorisTech/tuckit
-// @version      0.1.1-alpha.4
+// @version      0.1.1-rc.2
 // @description  Does Meta AI input cover your chat? Does DeepSeek box get too big? TuckIT pins input to bottom so it NEVER covers messages. Drag teal bar to resize (smooth), triangle to tuck, trash to clear all. For Meta AI & DeepSeek. By RDT - @RolanDorisTech
 // @author       RDT - Rolan Doris Tech
 // @supportURL   https://youtube.com/@RolanDorisTech
@@ -79,6 +79,11 @@ GM_addStyle(`
 .tuckit-clear.tuckit-clear-armed:hover{background:#e0566d!important}
 @keyframes tuckit-pulse{0%,100%{box-shadow:0 0 0 0 rgba(214,69,93,.55)}50%{box-shadow:0 0 0 5px rgba(214,69,93,0)}}
 .tuckit-wrap-fixed[data-tuckit-deepseek="1"] .tuckit-clear{right:28px!important}
+/* ---- Single-scrollbar enforcer (rc.1a2): any scroller inside the box other than the editor gets silenced ---- */
+.tuckit-wrap-fixed [data-tk-ns][data-tk-ns]{scrollbar-width:none!important;-ms-overflow-style:none!important}
+.tuckit-wrap-fixed [data-tk-ns][data-tk-ns]::-webkit-scrollbar{width:0!important;height:0!important;display:none!important;background:transparent!important}
+.tuckit-wrap-fixed [data-tk-ns="clip"][data-tk-ns]{overflow-y:hidden!important}
+.tuckit-wrap-fixed [data-tk-ns="nest"][data-tk-ns]{overflow-y:hidden!important;height:auto!important;max-height:none!important;min-height:0!important;padding-right:0!important;margin:0!important;flex:0 0 auto!important}
 `);
 let disabled=hasGM?GM_getValue('tuckit_disabled',false):localStorage.getItem('tuckit_disabled')==='1';
 let dragging=null,activeWrap=null,activeBtn=null,tipEl=null,hkEl=null,_tt=[],lastToggle=0,lastExpanded=0;
@@ -172,8 +177,39 @@ if(tWrap&&tWrap!==wrap){tWrap.classList.add('tuckit-ds-textarea-wrap');sp(tWrap,
 else sp(el,{height:'auto','max-height':'none','min-height':'0px',flex:'1 1 auto'});
 sp(el,{'overflow-y':'auto'});pinDSFooter(wrap);hideDeadDS(wrap,el);}
 makeFat(el,wrap);const btn=wrap.querySelector(':scope >.tuckit-toggle');if(btn){updTri(btn,wrap);if(isDeepSeek){btn.style.setProperty('right','28px','important');const cc=wrap.querySelector(':scope >.tuckit-clear');if(cc)cc.style.setProperty('right','28px','important');}}
-}finally{setTimeout(()=>{wrap._syncing=false;wrap._forceExpandFix=false;},40);if(isMeta&&!dragging){clearTimeout(wrap._fitT);wrap._fitT=setTimeout(()=>verifyFit(wrap,el),120);}}}
-function makeFat(el,wrap){if(!el)return;if(isDeepSeek){el.classList.add('tuckit-fat-scroll');if(wrap){wrap.classList.remove('tuckit-fat-scroll');sp(wrap,{'scrollbar-width':'none',overflow:'hidden','padding-right':'7px'});}try{sp(el,{'padding-right':'41px','margin-right':'7px','box-sizing':'border-box','scrollbar-gutter':'auto','overflow-y':'auto','scrollbar-width':'thin','overscroll-behavior':'contain'});}catch{}return;}[el,wrap].forEach(c=>{try{c.classList.add('tuckit-fat-scroll');}catch{}});try{sp(el,{'padding-right':'49px','margin-right':'0px','overscroll-behavior':'contain'});if(isMeta)sp(el,{'padding-bottom':'12px'});}catch{}}
+}finally{setTimeout(()=>{wrap._syncing=false;wrap._forceExpandFix=false;},40);schedOne(wrap);if(isMeta&&!dragging){clearTimeout(wrap._fitT);wrap._fitT=setTimeout(()=>verifyFit(wrap,el),120);}}}
+function makeFat(el,wrap){if(!el)return;if(isDeepSeek){el.classList.add('tuckit-fat-scroll');if(wrap){wrap.classList.remove('tuckit-fat-scroll');sp(wrap,{'scrollbar-width':'none',overflow:'hidden','padding-right':'7px'});}try{sp(el,{'padding-right':'41px','margin-right':'7px','box-sizing':'border-box','scrollbar-gutter':'auto','overflow-y':'auto','scrollbar-width':'thin','overscroll-behavior':'contain'});}catch{}return;}
+/* rc.1a2: only the editor gets the fat scrollbar. The wrap must NEVER show one (that was the 2nd bar on Meta). */
+try{el.classList.add('tuckit-fat-scroll');if(wrap){wrap.classList.remove('tuckit-fat-scroll');sp(wrap,{'scrollbar-width':'none',overflow:'hidden'});}}catch{}
+try{sp(el,{'padding-right':'49px','margin-right':'0px','overscroll-behavior':'contain'});if(isMeta)sp(el,{'padding-bottom':'12px'});}catch{}}
+/* ===================== SINGLE SCROLLBAR ENFORCER (rc.1a2) =====================
+   The editor (wrap._el) is the ONLY element allowed to show a vertical scrollbar.
+   Anything else inside the box that could scroll is tagged data-tk-ns:
+     clip = ancestor of the editor that scrolls  -> overflow-y hidden + bar hidden
+     nest = a nested editable inside the editor  -> overflow-y hidden, auto height, bar hidden
+     hide = a sibling scroller (attachments etc) -> scrolling still works, bar hidden
+   It runs after every resize, on paste/drop/file-pick bursts, when DOM nodes are added,
+   when a non-editor element scrolls, and on a light 1s watchdog. */
+const _tkOurs='.tuckit-handle,.tuckit-toggle,.tuckit-clear,.tuckit-tip,.tuckit-tip-hint';
+const _TK_SCAN='div,section,ul,ol,form,aside,article,main,pre,textarea,[contenteditable]';
+function primaryEl(wrap){let el=wrap._el;if(el&&el.isConnected&&wrap.contains(el))return el;try{el=wrap.querySelector(SELECTORS);}catch{el=null;}if(el)wrap._el=el;return el;}
+function nsMode(d,el){
+if(!d||d===el||d.nodeType!==1||d.hasAttribute('data-tk-ns'))return null;
+if(d.closest(_tkOurs))return null;
+const oy=getComputedStyle(d).overflowY,scrolly=(oy==='auto'||oy==='scroll'||oy==='overlay');
+if(d.contains(el))return scrolly?'clip':null;
+if(el.contains(d)){if(isEditable(d))return 'nest';return(scrolly&&d.scrollHeight>d.clientHeight+1)?'nest':null;}
+return(scrolly&&d.scrollHeight>d.clientHeight+1)?'hide':null;}
+function markNS(d,mode){try{d.setAttribute('data-tk-ns',mode);if(mode!=='hide'){if(d.scrollTop)d.scrollTop=0;}}catch{}}
+function oneScroll(wrap,force){try{
+if(!wrap||!wrap.isConnected||wrap.dataset.locked!=='1')return;
+const n=performance.now();if(!force&&n-(wrap._osT||0)<120)return;wrap._osT=n;
+const el=primaryEl(wrap);if(!el)return;
+if(wrap.scrollTop)wrap.scrollTop=0;if(wrap.scrollLeft)wrap.scrollLeft=0;
+wrap.querySelectorAll(_TK_SCAN).forEach(d=>{const m=nsMode(d,el);if(m)markNS(d,m);});}catch{}}
+function schedOne(wrap){if(!wrap)return;clearTimeout(wrap._osQ);wrap._osQ=setTimeout(()=>oneScroll(wrap,true),90);}
+function burstOne(wrap){[60,200,500,1000,1800,3000].forEach(ms=>setTimeout(()=>oneScroll(wrap,true),ms));}
+/* ===================== /SINGLE SCROLLBAR ENFORCER ===================== */
 function pinDSFooter(wrap){if(!isDeepSeek||!wrap)return;const f=getDSFooter(wrap);if(!f)return;const fh=Math.ceil(f.getBoundingClientRect().height)||72;sp(wrap,{position:'relative','padding-bottom':(fh+2)+'px','box-sizing':'border-box',overflow:'hidden'});f.classList.add('tuckit-ds-footer');sp(f,{position:'absolute',bottom:'0',left:'0',right:'0','z-index':'6',background:'inherit'});}
 function hideDeadDS(wrap,el){if(!isDeepSeek||!wrap||!el)return;const footer=getDSFooter(wrap),aSet=new Set(getDSAttachEls(wrap));wrap.setAttribute('data-tuckit-deepseek','1');sp(wrap,{overflow:'hidden',gap:'0'});wrap.querySelectorAll(':scope > div').forEach(d=>{if(d===el||d.contains(el)){if(d!==el)sp(d,{overflow:'hidden',margin:'0',gap:'0'});return;}if(aSet.has(d)){d.classList.add('tuckit-ds-attach');sp(d,{margin:'0','margin-bottom':'8px','padding-bottom':'0',overflow:'visible',display:'block',gap:'0'});return;}if(d===footer)return;if(d.parentElement===wrap)sp(d,{overflow:'hidden'});});const t=getDirectChildWrapper(wrap,el);if(t&&t!==wrap)sp(t,{overflow:'hidden','margin-top':'0'});killExtraBars(wrap,el);}
 function killExtraBars(wrap,el){if(!isDeepSeek||!wrap||!el||!wrap.isConnected)return;const n=performance.now();if(n-(wrap._xbT||0)<500){if(!wrap._xbQ)wrap._xbQ=setTimeout(()=>{wrap._xbQ=0;killExtraBars(wrap,el);},520);return;}wrap._xbT=n;try{const er=el.getBoundingClientRect(),wr=wrap.getBoundingClientRect();wrap.querySelectorAll('*').forEach(d=>{if(d===el||d.contains(el)||el.contains(d)||d.hasAttribute('data-tk-xbar'))return;if(/^(BUTTON|IMG|SVG|CANVAS|INPUT|TEXTAREA|VIDEO|A)$/i.test(d.tagName)||d.closest('.tuckit-handle,.tuckit-toggle,.tuckit-ds-footer,.tuckit-ds-attach,button,svg'))return;if((d.textContent||'').trim())return;const r=d.getBoundingClientRect();if(r.width>=2&&r.width<=24&&r.height>=16&&r.top>=er.top-20&&r.bottom<=er.bottom+20&&r.left>=er.right-90&&r.right<=wr.right+4)d.setAttribute('data-tk-xbar','1');});}catch{}}
@@ -319,7 +355,7 @@ function afterSend(wrap,btn,el){
 if(!wrap||!el)return;const _sk=snapScroll();markOp();metaIntent(wrap);const min=computeMinimalH(wrap,el);
 try{wrap.style.removeProperty('height');wrap.style.removeProperty('min-height');el.style.removeProperty('height');el.style.removeProperty('max-height');}catch{}
 Object.assign(wrap,{_manual:min,_userTucked:true,_dragLocked:false,_draggedThisTurn:false,_wasEmpty:true,_wasNotEmpty:false,_firstAttachDone:false,_lastAttach:0,_lastAttachH:0,_dragArmed:false,_pasteArmed:false,_forceExpandFix:true});
-syncSizes(wrap,el,min);if(isEmpty(el)){el.scrollTop=0;el.scrollLeft=0;}save('compact');updTri(btn,wrap);keepScroll(_sk);
+syncSizes(wrap,el,min);if(isEmpty(el)){el.scrollTop=0;el.scrollLeft=0;}save('compact');updTri(btn,wrap);keepScroll(_sk);burstOne(wrap);
 if(el._bootT)clearTimeout(el._bootT);
 el._bootT=setTimeout(()=>{try{el.scrollTop=0;const ww=el.closest('.tuckit-wrap-fixed');if(ww)ww.scrollTop=0;}catch{}reveal(el,'first',{range:null,taS:null,taE:null});},2700);}
 function hookSend(wrap,btn,el){try{
@@ -379,7 +415,10 @@ handle.addEventListener('pointerleave',()=>schedHide(btn));
 const startDrag=e=>{if(e.target.closest('.tuckit-toggle')||e.target.closest('.tuckit-clear'))return;e.preventDefault();e.stopPropagation();dragging={el,wrap,btn,startY:e.clientY,startH:wrap.offsetHeight,lastH:wrap.offsetHeight,locked:false,moved:false,feed:null,startFeed:0};hideTips();if(e.target.setPointerCapture){try{e.target.setPointerCapture(e.pointerId);}catch{}}};
 handle.addEventListener('pointerdown',startDrag);
 wrap.addEventListener('pointerdown',e=>{if(e.target.closest('.tuckit-toggle')||e.target.closest('.tuckit-clear')||e.target.closest('.tuckit-handle')||e.target===el||el.contains(e.target))return;const r=wrap.getBoundingClientRect();if(e.clientY-r.top<18&&e.clientY-r.top>=0)startDrag(e);});
-wrap.addEventListener('scroll',e=>{try{const t=e.target;if(!t||t===el||t===document||(t.nodeType===1&&el.contains(t)))return;if((t.scrollTop||t.scrollLeft)&&(t===wrap||getComputedStyle(t).overflowY==='hidden')){t.scrollTop=0;t.scrollLeft=0;}}catch{}},true);
+/* rc.1a2: scroll listener now also catches ANY second scroller the moment it moves and silences it */
+wrap.addEventListener('scroll',e=>{try{const t=e.target;if(!t||t===el||t===document||t.nodeType!==1)return;if(t===wrap){wrap.scrollTop=0;wrap.scrollLeft=0;return;}
+const m=nsMode(t,el);if(m)markNS(t,m);
+if(el.contains(t))return;if((t.scrollTop||t.scrollLeft)&&getComputedStyle(t).overflowY==='hidden'){t.scrollTop=0;t.scrollLeft=0;}}catch{}},true);
 if(isMeta){el.addEventListener('wheel',e=>{try{if(wrap.dataset.locked!=='1'||e.ctrlKey)return;const max=el.scrollHeight-el.clientHeight;if(max<=0)return;let dy=e.deltaY;if(e.deltaMode===1)dy*=(parseFloat(getComputedStyle(el).lineHeight)||20);else if(e.deltaMode===2)dy*=el.clientHeight;e.preventDefault();e.stopPropagation();el.scrollTop=Math.max(0,Math.min(max,el.scrollTop+dy));}catch{}},{passive:false});}
 // ---- Clear-all button (DeepSeek only; Meta trashcan disabled: never attached) ----
 const clr=document.createElement('button');clr.className='tuckit-clear tuckit-faded';clr.type='button';clr.style.opacity='0';clr.setAttribute('aria-label',CLR_TIP);
@@ -432,7 +471,7 @@ el.addEventListener('keydown',e=>{if(e.key==='Backspace'||e.key==='Delete')wrap.
 el.addEventListener('keyup',e=>{if(e.key==='Backspace'||e.key==='Delete'){saveCaret(el);scrollCaretIntoView(el);}});
 el.addEventListener('focus',()=>{const _skF=snapScroll();activeWrap=wrap;activeBtn=btn;showUI(btn);makeFat(el,wrap);if(isDeepSeek){pinDSFooter(wrap);hideDeadDS(wrap,el);}
 if(wrap._userTucked&&getDSAttachH(wrap)===0)syncSizes(wrap,el,wrap._manual??computeMinimalH(wrap,el));else if(!wrap._dragLocked&&!isMeta)qResize(el,wrap,btn,{});
-saveCaret(el);resetAnc(el);keepScroll(_skF);});
+saveCaret(el);resetAnc(el);keepScroll(_skF);schedOne(wrap);});
 try{localStorage.removeItem(KEY);if(hasGM)GM_setValue(KEY,'native');}catch{}
 lockBottom(wrap);makeFat(el,wrap);if(isDeepSeek){pinDSFooter(wrap);hideDeadDS(wrap,el);}
 wrap._manual=getMinH();wrap._wasEmpty=isEmpty(el);wrap._userTucked=false;wrap._dragLocked=false;wrap._draggedThisTurn=false;
@@ -453,21 +492,27 @@ const grow=()=>{if(!wrap.isConnected||wrap.dataset.locked!=='1'||wrap._syncing||
 const retry=e=>{const dt=e&&(e.clipboardData||e.dataTransfer);if(e&&e.type!=='change'&&!(dt&&dt.files&&dt.files.length))return;[0,60,200,500].forEach(ms=>setTimeout(grow,ms));[300,800,1600,3000].forEach(ms=>setTimeout(chkAtt,ms));};
 wrap.addEventListener('drop',retry,true);wrap.addEventListener('paste',retry,true);document.addEventListener('change',e=>{if(wrap.isConnected&&e.target?.matches?.('input[type=file]'))retry();},true);
 const o=new MutationObserver(ms=>{if(wrap._maQ||ms.every(m=>el.contains(m.target)||m.target.closest?.('.tuckit-toggle,.tuckit-handle,.tuckit-clear')))return;wrap._maQ=1;requestAnimationFrame(()=>{wrap._maQ=0;chkAtt();});});o.observe(wrap,{childList:true,subtree:true});wrap._maObs=o;setTimeout(chkAtt,700);}
+/* ---- rc.1a2: single-scrollbar enforcement hooks (both Meta and DeepSeek) ---- */
+if(!wrap._osObs){const mo=new MutationObserver(ms=>{try{const cur=primaryEl(wrap)||el;for(const m of ms){if(m.target.closest&&m.target.closest('.tuckit-toggle,.tuckit-handle,.tuckit-clear'))continue;if(!cur.contains(m.target)||m.target===cur){schedOne(wrap);return;}for(const n of m.addedNodes){if(n.nodeType===1&&!/^(P|SPAN|BR|B|I|U|STRONG|EM|CODE|A)$/.test(n.tagName)){schedOne(wrap);return;}}}}catch{}});mo.observe(wrap,{childList:true,subtree:true});wrap._osObs=mo;}
+['drop','paste'].forEach(ev=>wrap.addEventListener(ev,()=>burstOne(wrap),true));
+document.addEventListener('change',e=>{if(wrap.isConnected&&e.target?.matches?.('input[type=file]'))burstOne(wrap);},true);
+wrap.addEventListener('load',()=>schedOne(wrap),true);
+burstOne(wrap);
 guardMeta(wrap,el);hookSend(wrap,btn,el);keepScroll(_skInj);}
 function isNewChat(){try{const p=location.pathname,h=location.hostname;if(h.includes('meta.ai'))return !/^\/(c|prompt|create)\//.test(p);if(h.includes('deepseek.com')){if(p.includes('/a/chat/s/'))return false;if(/\/chat\//.test(p)&&p.length>10)return false;return true;}return false;}catch{return false;}}
 function stopBootObs(){if(_bootObs){try{_bootObs.disconnect();}catch{}_bootObs=null;}if(_bootT){clearTimeout(_bootT);_bootT=null;}}
 function cleanup(){const _sk=snapScroll();markOp();
 try{stopBootObs();if(_metaObs){try{_metaObs.disconnect();}catch{}_metaObs=null;}if(_metaTimer){clearTimeout(_metaTimer);_metaTimer=null;}_clrWrap=null;
-document.querySelectorAll('[data-tk-xbar]').forEach(x=>x.removeAttribute('data-tk-xbar'));document.querySelectorAll('.tuckit-handle,.tuckit-toggle,.tuckit-clear').forEach(n=>n.remove());
+document.querySelectorAll('[data-tk-xbar]').forEach(x=>x.removeAttribute('data-tk-xbar'));document.querySelectorAll('[data-tk-ns]').forEach(x=>x.removeAttribute('data-tk-ns'));document.querySelectorAll('.tuckit-handle,.tuckit-toggle,.tuckit-clear').forEach(n=>n.remove());
 hideHints();document.querySelectorAll('.tuckit-tip-hint').forEach(e=>e.remove());[tipEl,hkEl].forEach(e=>{if(e)e.remove();});tipEl=hkEl=null;
-document.querySelectorAll('.tuckit-wrap-fixed').forEach(wrap=>{try{clearTimeout(wrap._clrT);clearTimeout(wrap._metaIntentT);wrap._clrArmed=false;
+document.querySelectorAll('.tuckit-wrap-fixed').forEach(wrap=>{try{clearTimeout(wrap._clrT);clearTimeout(wrap._metaIntentT);clearTimeout(wrap._osQ);wrap._clrArmed=false;
 if(wrap.dataset.orig){try{restInline(wrap,JSON.parse(wrap.dataset.orig));}catch{}}
-['height','min-height','padding-bottom','padding-top','gap','row-gap'].forEach(p=>wrap.style.removeProperty(p));
+['height','min-height','padding-bottom','padding-top','gap','row-gap','scrollbar-width'].forEach(p=>wrap.style.removeProperty(p));
 wrap.classList.remove('tuckit-wrap-fixed','tuckit-fat-scroll');
 wrap.querySelectorAll('div[contenteditable="true"],textarea').forEach(el=>{['height','max-height','overflow-y','flex','margin','padding-bottom'].forEach(p=>el.style.removeProperty(p));el.classList.remove('tuckit-fat-scroll');});
 delete wrap.dataset.locked;delete wrap.dataset.orig;
-['_origMin','_metaFH','_adj','_manual','_wasEmpty','_metaResizeRequested','_metaIntentAt','_lastTog','_userTucked','_dragLocked','_draggedThisTurn','_firstAttachDone','_lastAttach','_lastAttachH','_dragArmed','_pasteArmed','_maC','_attC','_attH','_barW','_delAt','_ttSched'].forEach(k=>delete wrap[k]);
-['_metaObs','_dsObs','_resizeObs','_guardObs','_attachObs','_maObs'].forEach(k=>{if(wrap[k]){try{wrap[k].disconnect();}catch{}delete wrap[k];}});}catch{}});
+['_origMin','_metaFH','_adj','_manual','_wasEmpty','_metaResizeRequested','_metaIntentAt','_lastTog','_userTucked','_dragLocked','_draggedThisTurn','_firstAttachDone','_lastAttach','_lastAttachH','_dragArmed','_pasteArmed','_maC','_attC','_attH','_barW','_delAt','_ttSched','_osT','_osQ'].forEach(k=>delete wrap[k]);
+['_metaObs','_dsObs','_resizeObs','_guardObs','_attachObs','_maObs','_osObs'].forEach(k=>{if(wrap[k]){try{wrap[k].disconnect();}catch{}delete wrap[k];}});}catch{}});
 if(isMeta)unfixMeta();activeWrap=null;activeBtn=null;dragging=null;_wraps=[];seen=new WeakSet();}catch{}
 keepScroll(_sk);}
 function setDisabled(v){disabled=v;if(hasGM)GM_setValue('tuckit_disabled',v);else localStorage.setItem('tuckit_disabled',v?'1':'0');if(v){cleanup();showToast('TuckIT OFF — Ctrl+Shift+K to turn ON');}else{showToast('TuckIT ON — Ctrl+Shift+K to turn OFF');setTimeout(()=>boot(),200);}}
@@ -514,5 +559,7 @@ return;}
 if(e.key==='Enter'){const w=_clrWrap;if(!w||!w._clrArmed)return;e.preventDefault();e.stopImmediatePropagation();if(Date.now()-(w._clrAt||0)>300){const b=w._btn;disarmClr(w);doClear(w,b);}return;}
 if(e.key.length===1||e.key==='Backspace'||e.key==='Delete'){const w=_clrWrap;if(w&&w._clrArmed)disarmClr(w);}},true);
 window.addEventListener('pointerdown',e=>{const w=_clrWrap;if(w&&w._clrArmed&&!(e.target.closest&&e.target.closest('.tuckit-clear')))disarmClr(w);},true);
+/* rc.1a2 watchdog: light 1s sweep so a second scrollbar can never linger (oneScroll self-throttles) */
+setInterval(()=>{try{if(disabled||dragging||!_wraps.length)return;_wraps.forEach(w=>{if(w&&w.isConnected&&!w._animating)oneScroll(w);});}catch{}},1000);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
