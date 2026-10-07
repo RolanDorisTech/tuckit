@@ -7,13 +7,13 @@
 [![Built on YouTube - RDT](https://img.shields.io/badge/Built_on_YouTube-RDT-red?logo=youtube)](https://youtube.com/@RolanDorisTech)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-### v0.1.1-alpha.4 - Best build yet
+### v0.1.1-rc.2 - Single-Scrollbar Fix (Best build yet)
 
-- Added Trash Clear All for DeepSeek - Esc to arm, Enter/click to confirm, clears text + attachments
-- Added Scroll Keeper - prevents page jumping to top during resize/tuck/send
-- Fixed Meta half-line clipped - larger buffer + verifyFit guard, Shift+Enter / pasted images now fully visible
-- Fixed DeepSeek first-attachment auto-expand, footer pinning, ghost scrollbar removal
-- Improved caret restore & overall stability
+Fixed double scrollbar on 【entity-Meta AI¦canonical_name=Meta】 - wrapper + editor both showed bar, now only editor shows
+Added single-scrollbar enforcer [data-tk-ns] - any extra scroller inside box gets hidden (clip/nest/hide)
+Refactored makeFat() editor-only - wrapper now scrollbar-width:none; overflow:hidden
+Added hooks: after resize, afterSend, focus, scroll, drop/paste/file, MutationObserver + 1s watchdog
+Carried from alpha.4: Trash Clear All (DeepSeek), Scroll Keeper, half-line fix, caret restore
 
 ---
 
@@ -70,8 +70,11 @@ If you want more room while typing, drag the teal bar up or hit `Ctrl+Shift+L` t
 **5. When in doubt, refresh**
 If anything looks crooked: `If crooked, refresh (Cmd + R / Ctrl + R)`. Fixes 99% of quirks.
 
-**6. Clear All Note**
-Trash Clear All is DeepSeek-only in alpha.4. Meta trash is intentionally disabled to avoid fighting Meta's composer. On DeepSeek it clears both text and attached files.
+**6. Clear All - How to Use Trash Button**
+Trash Clear All is DeepSeek-only (Meta disabled intentionally, have not yet figured out how to make it work right. it just does not delete text...).
+- Click trash OR press Esc to arm - pulses red, shows "Press Enter or click again to confirm"
+- Press Enter OR click again to confirm - clears text + all attachments
+- Cancel: Esc again, type, or click outside. Double-confirm prevents accidents.
 
 ## ✨ Features
 
@@ -143,7 +146,7 @@ Both use Ctrl+Shift on Mac too.
 
 ## 🌐 Supported Sites
 
-**v0.1.1-alpha.4 - Best build yet **
+**v0.1.1-rc.2 - Single-Scrollbar Fix**
 - ✅ `meta.ai/*`
 - ✅ `facebook.com/ai/*`
 - ✅ `deepseek.com/*`
@@ -169,7 +172,7 @@ A: `If crooked, refresh (Cmd + R / Ctrl + R)`.
 A: `chrome://extensions/` -> Tampermonkey -> Details -> Allow User Scripts ON.
 
 **Q: What does trash button do?**
-A: New in alpha.4 - DeepSeek only. Clears current prompt + attached files. Double-confirm to prevent accidents: Esc arms it (turns red), Enter confirms. Meta trash is disabled intentionally.
+A: DeepSeek only (since alpha.4, polished in rc.2). Clears prompt + all attached files/images. Esc/click to arm (red pulse), Enter/click again to confirm, Esc/type/outside to cancel. No trash on Meta by design.
 
 **Q: Why two files?**
 A: `tuckit.user.js` = live auto-update. Versioned file = archive.
@@ -186,7 +189,8 @@ A: `tuckit.user.js` = live auto-update. Versioned file = archive.
 
 - v0.1.0 - Meta + DeepSeek stable (archive)
 - v0.1.1-alpha.2 - Meta full-line fix + 40% smaller DeepSeek attach
-- v0.1.1-alpha.4 - Trash Clear All + Scroll Keeper + stability polish (current best)
+- v0.1.1-alpha.4 - Trash Clear All + Scroll Keeper + stability polish
+- v0.1.1-rc.2 - Single-Scrollbar Enforcer - fixes double bar on Meta (current best)
 - v0.2.0 - Adapter pattern, ChatGPT/Claude/Gemini
 - v0.3.0 - Native MV3
 
