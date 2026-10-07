@@ -43,7 +43,7 @@ TuckIT pins the input to the bottom and gives you full control:
 
 ## ⚠ Quirks, Intended Behavior & Pro Tips - READ THIS
 
-I built TuckIT to be minimal and fast, but 【entity-Meta¦canonical_name=Meta】 and DeepSeek use heavy React editors (Lexical/ProseMirror) that fight back. Most of these are intentional.
+I built TuckIT to be minimal and fast, but 【entity-Meta¦canonical_name=Meta】 and DeepSeek use heavy React editors (Lexical/ProseMirror) that fight back. Most of these are intentional. There is current a known visual bug where if you drag an attachment into Meta chat, sometimes the vertical scroll bar in the chatbox becomes unwrapped and shows 2 vertical scroll bar instead of one. It does go away after refresh but there has not been a good permanent solution yet for that bug. Additionally, in Safari, when you zoom in, DeepSeek's chat shows a horizontal scroll bar. That is NOT a TuckIT bug I believe. That just happens for some reason even with TuckIT OFF (Control + Shift +K shortcut for turning it off). 
 
 **1. Drag Bar = Smooth, Triangle Button = Can Glitch**
 If you drag the edge of the text box using the teal drag bar to expand the chat box, it's buttery smooth and less laggy. Using the UnTuckIT triangle button to expand sometimes results in visual bugs - the textarea stays small with a big empty gray area, or the scrollbar jumps to the far right.
